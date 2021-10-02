@@ -9,15 +9,8 @@ INITIAL_VALUE = 200000000000
 def deploy_thunt():
     account = get_account()
     treasure = TreasureHunt.deploy(
-        config["networks"]["rinkeby"]["vrf_coordinator"],
-        config["networks"]["rinkeby"]["link_token"],
-        config["networks"]["rinkeby"]["fee"],
-        config["networks"]["rinkeby"]["key_hash"],
         config["token_URI"],
-        {"from": account},
-        publish_source=config["networks"][network.show_active()].get(
-            "verify", False),
-    )
+        {"from": account})
 
 
 def get_account():
