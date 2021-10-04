@@ -10,6 +10,7 @@ def deploy_thunt():
     account = get_account()
     treasure = TreasureHunt.deploy(
         config["token_URI"],
+        config["mask_token"],
         {"from": account})
 
 

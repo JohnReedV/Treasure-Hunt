@@ -1,17 +1,43 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract TreasureHunt is ERC721URIStorage {
+contract TreasureHunt is ERC721URIStorage, Ownable {
     address[] public treasureHolders;
     uint256 public tokenCounter;
+    uint256 public totalStakeAmount;
+    mapping(address => uint256) public userBalance;
+    IERC20 public maskToken;
 
-    constructor(string memory tokenURI) ERC721("Burried Treasure", "TRES") {
+    constructor(string memory tokenURI, address _maskTokenAddress)
+        ERC721("Burried Treasure", "TRES")
+    {
         tokenCounter = 0;
         tokenURI;
+        maskToken = IERC20(_maskTokenAddress);
     }
 
-    function main(address _user) public {
+    function maskTokenDeposit(uint256 _amount) public payable {
+        require(_amount > 0, "Cannot send 0");
+        maskToken.transferFrom(msg.sender, address(this), _amount);
+        totalStakeAmount += _amount;
+        userBalance[msg.sender] += _amount;
+    }
+
+    function withdrawMaskToken(uint256 _amount) public onlyOwner {
+        uint256 balance = userBalance[msg.sender];
+        require(balance > 0, "You cannot withdraw nothing");
+        maskToken.transfer(msg.sender, balance);
+        totalStakeAmount -= balance;
+    }
+
+    function sendMaskToken(uint256 _amount, address _to) public onlyOwner {
+        maskToken.transferFrom(address(this), _to, _amount);
+    }
+
+    function mintNFT(address _user) public onlyOwner {
         treasureHolders.push(_user);
         string memory tokenURI;
         createTreasure(tokenURI, _user);
@@ -22,5 +48,9 @@ contract TreasureHunt is ERC721URIStorage {
         _safeMint(_user, newTokenId);
         _setTokenURI(newTokenId, _tokenURI);
         tokenCounter++;
+    }
+
+    function changeOwner(address _newOwner) public onlyOwner {
+        transferOwnership(_newOwner);
     }
 }
