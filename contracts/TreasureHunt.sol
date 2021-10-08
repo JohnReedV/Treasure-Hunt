@@ -11,6 +11,9 @@ contract TreasureHunt is ERC721URIStorage, Ownable {
     mapping(address => uint256) public userBalance;
     IERC20 public maskToken;
 
+    event MoveMaskToken(uint256 date, address from, address to, uint256 amount);
+    event MintNFT(uint256 date, address to);
+
     constructor(string memory tokenURI, address _maskTokenAddress)
         ERC721("Burried Treasure", "TRES")
     {
@@ -24,6 +27,7 @@ contract TreasureHunt is ERC721URIStorage, Ownable {
         maskToken.transferFrom(msg.sender, address(this), _amount);
         totalStakeAmount += _amount;
         userBalance[msg.sender] += _amount;
+        emit MoveMaskToken(block.timestamp, msg.sender, address(this), _amount);
     }
 
     function withdrawMaskToken(uint256 _amount) public onlyOwner {
@@ -31,16 +35,19 @@ contract TreasureHunt is ERC721URIStorage, Ownable {
         require(balance > 0, "You cannot withdraw nothing");
         maskToken.transfer(msg.sender, balance);
         totalStakeAmount -= balance;
+        emit MoveMaskToken(block.timestamp, address(this), msg.sender, _amount);
     }
 
     function sendMaskToken(uint256 _amount, address _to) public onlyOwner {
         maskToken.transferFrom(address(this), _to, _amount);
+        emit MoveMaskToken(block.timestamp, address(this), _to, _amount);
     }
 
     function mintNFT(address _user) public onlyOwner {
         treasureHolders.push(_user);
         string memory tokenURI;
         createTreasure(tokenURI, _user);
+        emit MintNFT(block.timestamp, _user);
     }
 
     function createTreasure(string memory _tokenURI, address _user) public {
