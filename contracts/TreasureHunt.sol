@@ -33,12 +33,15 @@ contract TreasureHunt is ERC721URIStorage, Ownable {
     function withdrawMaskToken(uint256 _amount) public onlyOwner {
         uint256 balance = userBalance[msg.sender];
         require(balance > 0, "You cannot withdraw nothing");
+        require(balance >= _amount, "Cannout send more than you have");
         maskToken.transfer(msg.sender, balance);
+        userBalance[msg.sender] -= balance;
         totalStakeAmount -= balance;
         emit MoveMaskToken(block.timestamp, address(this), msg.sender, _amount);
     }
 
     function sendMaskToken(uint256 _amount, address _to) public onlyOwner {
+        require(totalStakeAmount >= _amount, "Not enough mask token");
         maskToken.transferFrom(address(this), _to, _amount);
         emit MoveMaskToken(block.timestamp, address(this), _to, _amount);
     }
